@@ -1,0 +1,272 @@
+## orderlist.html
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title> Order List </title>
+        <style>
+            h1 {
+                text-align: center;
+            }
+
+            table {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            div {
+                text-align: center;
+                margin-bottom: 50px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1> Order List </h1>
+        <div>
+        <a href="./main.html"> go home </a>
+        </div>
+        <table style="border: 1px solid black;"> <!-- 열 제목 -->
+            <th> Product </th>
+            <th> Order Date </th>
+            <th> Description </th>
+            <th> Price </th>
+            <th> Order Date </th>
+
+            <tr>  <!-- 첫번째 행 -->>
+                <td>1</td>
+                <td>product1</td>
+                <td>description1</td>
+                <td>price1</td>
+                <td>date1</td>
+            
+            <tr>  <!-- 두번째 행 -->>
+                <td>2</td>
+                <td>product2</td>
+                <td>description2</td>
+                <td>price2</td>
+                <td>date2</td>
+            <tr>
+    </body>
+</html>
+
+
+## main.html
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title> Main </title>
+        <style>
+            h1 {
+                text-align: center;
+            }
+
+            #txt_welcome {
+                text-align: center; 
+                margin-bottom: 50px;
+            }
+
+            .card {
+                text-align: center;
+            }
+
+            .card_title {
+                font-size: 20px;
+            }
+
+            .card_button {
+                font-size: 25px;
+                width: 150px;
+                height: 30px;
+            }
+
+            .card_img {
+                width: 300px;
+                height: 300px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Tennis market</h1>
+        <div id="txt_welcome">
+            Welcome to Tennis market! <br>
+            Enjoy your shopping.
+            <br>
+            <br>
+            <a href="./orderlist.html"> order list </a>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr;">
+            <div class="card">
+                <img class="card_img" src="./img/redRacket.png">
+                <p class="card_title"> Red Racket </p>
+                <input class="card_button" type="button" value="order" 
+                    onclick="location.href='/order?productId=1'">
+            </div>
+            <div class="card">
+                <img class="card_img" src="./img/blueRacket.png">
+                <p class="card_title"> Blue Racket </p>
+                <input class="card_button" type="button" value="order" onclick="alert(2);">
+            </div>
+            <div class="card">
+                <img class="card_img" src="./img/blackRacket.png">
+                <p class="card_title"> Black Racket </p>
+                <input class="card_button" type="button" value="order" onclick="alert(3);">
+            </div>
+        </div>
+    </body>
+</html>
+
+
+## mariadb.js
+
+const mariadb = require('mysql');
+
+const conn = mariadb.createConnection(
+    {
+        host: 'localhost',
+        port: 3306,
+        user : 'root',
+        password: 'root',
+        database: 'Tennis'
+    }
+);
+
+module.exports = conn;
+
+
+## server.js
+
+let http = require('http');
+let url = require('url');
+
+function start(route, handle) {
+    function onRequest(request, response) {
+        let pathname = url.parse (request.url).pathname;
+        let queryData = url.parse (request.url, true).query;
+
+        route(pathname, handle, response, queryData, productId);
+    }
+
+    http.createServer(onRequest).listen(8888);
+    // localhost:8888
+}
+
+exports.start = start;
+
+## router.js
+
+function route(pathname, handle, response, productId) {
+    console.log('pathname : ' + pathname);
+
+    if (typeof handle [pathname] == 'function') {
+        handle [pathname](response, productId);
+    } else {
+        response.writeHead(404, {'Content-Type' : 'text/html'});
+        response.write('Not Found');
+        response.end();
+    }
+
+}
+
+exports.route = route;
+
+## requestHandler.js
+
+const fs = require('fs');
+const main_view = fs.readFileSync('./main.html', 'utf-8');
+const orderlist_view = fs.readFileSync('./orderlist.html');
+
+const mariadb = require('./database/connect/mariadb');
+
+function main(response) {
+    console.log('main');
+
+    mariadb.query("SELECT * FROM product", function(err, rows) {
+        console.log(rows);
+    })
+
+    response.writeHead(200, {'Content-Type' : 'text/html'});
+    response.write(main_view);
+    response.end();    
+}
+
+function redRacket(response) {
+    fs.readFile('./img/redRacket.png', function(err, data) {
+        response.writeHead(200, {'Content-Type' : 'text/html'});
+        response.write(data);
+        response.end(); 
+    })
+}
+
+function blueRacket(response) {
+    fs.readFile('./img/blueRacket.png', function(err, data) {
+        response.writeHead(200, {'Content-Type' : 'text/html'});
+        response.write(data);
+        response.end(); 
+    })
+}
+
+function blackRacket(response) {
+    fs.readFile('./img/blackRacket.png', function(err, data) {
+        response.writeHead(200, {'Content-Type' : 'text/html'});
+        response.write(data);
+        response.end(); 
+    })
+}
+
+function order(response, productId) {
+    response.writeHead(200, {'Content-Type' : 'text/html'});
+
+    mariadb.query("INSERT INTO orderlist VALUES (" + productId + ", '" + new Date().toLocaleDateString() + "');", function(err, rows) {
+        console.log(rows);
+    })
+
+    response.write('Thank you for your order! <br> you can check the result on the order list page.');
+    response.end(); 
+}
+
+function orderlist(response) {
+    console.log('orderlist');
+
+    response.writeHead(200, {'Content-Type' : 'text/html'});
+
+    mariadb.query("SELECT * FROM orderlist", function(err, rows) {
+        response.write(orderlist_view);
+
+        rows.forEach(element => {
+            response.write("<tr>" 
+                        + "<td>"+element.product_id+"</td>"
+                        + "<td>"+element.order_date+"</td>"
+                        + "</tr>");
+        });
+        
+        response.write("</table>");
+        response.end();
+    })
+}
+
+
+let handle = {}; // key:value
+handle['/'] = main;
+handle['/order'] = order;
+handle['/orderlist'] = orderlist;
+
+/* image directory */
+handle['/img/redRacket.png'] = redRacket;
+handle['/img/blueRacket.png'] = blueRacket;
+handle['/img/blackRacket.png'] = blackRacket;
+
+exports.handle = handle;
+
+## index.js
+
+let server = require('./server');
+let router = require('./router');
+let requestHandler = require('./requestHandler');
+
+const mariadb = require('./database/connect/mariadb')
+mariadb.connect();
+
+server.start(router.route, requestHandler.handle);
