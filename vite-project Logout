@@ -1,0 +1,42 @@
+vite-project LogOut api
+
+import { userTypedSelector } from "./redux"
+
+export function useAuth() {
+
+    const { id, email } = userTypedSelector((state) => state.user);
+
+    return {
+        isAuth: !!email,
+        email,
+        id
+    }
+}
+
+
+UserSlice.ts
+
+import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = {
+    emial. '',
+    id: ''
+}
+
+
+const userSlice = createSlice({
+    name: 'user',
+    initialState,
+    reducers: {
+        setUser: (state, action) => {
+            state.email = action.payload.email;
+            state.id = action.payload.id;
+        },
+        removeUser: (state) => {
+            state.email = '';
+            state.id = '';
+    }
+})
+
+export const { setUser, removeUser } = userSlice.actions;
+export const userReducer = userSlice.reducers;
