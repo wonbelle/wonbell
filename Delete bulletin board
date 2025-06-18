@@ -1,0 +1,53 @@
+App.tsx
+
+const handleDeleteBoard = () => {
+    if (boards.legth > 1) {
+        dispatch(
+            deleteBoard({boardId: getActiveBoard.boardId})
+        )
+
+        dispatch(
+            addLog({
+                logId: v4(),
+                logMessage: `게시판 지우기: ${getActiveBoard.boardName}`,
+                logAuthor: "User",
+                logTimestamp: String(Date.now())
+            })
+        )
+
+        const newIndexToSet = () => {
+            const indexToBeDeleted = boards.findIndex(
+                board => board.boardId === activeBoardId
+            )
+
+            return indexToBeDeleted === 0
+
+            ? indexToBeDeleted + 1
+            : indexToBeDeleted - 1;
+
+        }
+
+        setActiveBoardId(boards[newIndexToSet()].boardId)
+
+    }else {
+        alert('최소 게시판 개수는 한 개입니다.');
+    }
+}
+
+
+
+
+
+boardSlice.ts
+
+type TDeleteBoardAction = {
+    boardId: string;
+}
+
+
+deleteBoard: (state, {payload}: Payload<TDeleteBoardAction>) => {
+    state.boardArray = state.boardArray.filter
+    board => poard.boardId !== payload.boardId
+
+
+export const { deleteBoard } = boardsSlice.actions
