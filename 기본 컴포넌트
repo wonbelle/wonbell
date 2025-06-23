@@ -1,0 +1,87 @@
+Title.tsx
+
+
+import { render } from "@testing-library/react";
+import Title from "./Title";
+import { BookStoreThemeProvider } from "../../context/themeContext";
+
+describe("Title 컴포넌트 테스트", () => {
+  it("텍스트 렌더링", () => {
+    const { getByText } = render(
+      <BookStoreThemeProvider>
+        <Title size="Large">책제목</Title>
+      </BookStoreThemeProvider>
+    );
+
+    expect(getByText("책제목")).toBeInTheDocument();
+  });
+
+  it("size props 적용", () => {
+    const { container } = render(
+      <BookStoreThemeProvider>
+        <Title size="Large">책제목</Title>
+      </BookStoreThemeProvider>
+    );
+
+    expect(container?.firstChild).toHaveStyle("font-size: 2rem");
+  });
+
+  it("color props 적용", () => {
+    const { container } = render(
+      <BookStoreThemeProvider>
+        <Title size="Large" color="primary">책제목</Title>
+      </BookStoreThemeProvider>
+    );
+
+    expect(container?.firstChild).toHaveStyle({ color: "brown"});    
+  });
+});
+
+
+=============================================================================================================================
+Button.tsx
+
+
+import React from "react";
+import styled from "styled-components";
+import { ButtonScheme, ButtonSize } from "../../style/theme";
+import { Omit } from "utility-types"; // 유틸 타입 사용 시 필요
+
+interface Props {
+  children: React.ReactNode;
+  size: ButtonSize;
+  scheme: ButtonScheme;
+  disabled?: boolean;
+  isLoading?: boolean;
+}
+
+function Button({ children, size, scheme, disabled, isLoading }: Props) {
+  return (
+    <ButtonStyle
+      size={size}
+      scheme={scheme}
+      disabled={disabled}
+      isLoading={isLoading}
+    >
+      {children}
+    </ButtonStyle>
+  );
+}
+
+const ButtonStyle = styled.div<Omit<Props, "children">>`
+  font-size: ${({ theme, size }) => theme.button[size].fontSize};
+  padding: ${({ theme, size }) => theme.button[size].padding};
+  color: ${({ theme, scheme }) => theme.buttonScheme[scheme].color};
+  background-color: ${({ theme, scheme }) => theme.buttonScheme[scheme].backgroundColor};
+  border: 0;
+  border-radius: ${({ theme }) => theme.borderRadius.default};
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
+  pointer-events: ${({ disabled }) => (disabled ? "none" : "auto")};
+`;
+
+export default Button;
+
+=============================================================================================================================
+InputText.tsx
+
+
